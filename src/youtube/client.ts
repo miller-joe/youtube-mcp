@@ -227,6 +227,74 @@ export class YouTubeClient {
     return this.request<void>(url.toString(), { method: "POST" });
   }
 
+  /** Upload a caption track for a video. Body is typically SRT or WebVTT text. */
+  async insertCaption(params: {
+    videoId: string;
+    language: string;
+    name: string;
+    isDraft: boolean;
+    body: Uint8Array;
+    captionContentType: string;
+  }): Promise<unknown> {
+    const boundary = `youtube-mcp-${Date.now().toString(16)}`;
+    const metadata = JSON.stringify({
+      snippet: {
+        videoId: params.videoId,
+        language: params.language,
+        name: params.name,
+        isDraft: params.isDraft,
+      },
+    });
+    const opening = Buffer.from(
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${params.captionContentType}\r\n\r\n`,
+      "utf-8",
+    );
+    const closing = Buffer.from(`\r\n--${boundary}--\r\n`, "utf-8");
+    const body = Buffer.concat([opening, Buffer.from(params.body), closing]);
+
+    const url = new URL(`${UPLOAD_API}/captions`);
+    url.searchParams.set("part", "snippet");
+    url.searchParams.set("uploadType", "multipart");
+    const token = await this.ensureAccessToken();
+    const res = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": `multipart/related; boundary=${boundary}`,
+        "Content-Length": String(body.length),
+      },
+      body,
+    });
+    if (!res.ok) {
+      throw new Error(
+        `YouTube caption insert failed: ${res.status} ${await res.text()}`,
+      );
+    }
+    return res.json();
+  }
+
+  listCaptions(videoId: string): Promise<{
+    items: Array<{
+      id: string;
+      snippet?: {
+        name?: string;
+        language?: string;
+        status?: string;
+        isDraft?: boolean;
+        lastUpdated?: string;
+        trackKind?: string;
+      };
+    }>;
+  }> {
+    return this.dataGet("/captions", { part: "snippet", videoId });
+  }
+
+  deleteCaption(captionId: string): Promise<void> {
+    const url = new URL(`${DATA_API}/captions`);
+    url.searchParams.set("id", captionId);
+    return this.request<void>(url.toString(), { method: "DELETE" });
+  }
+
   async analyticsQuery(params: {
     startDate: string;
     endDate: string;

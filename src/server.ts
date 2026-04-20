@@ -13,6 +13,8 @@ import { registerVideoTools } from "./tools/videos.js";
 import { registerPlaylistTools } from "./tools/playlists.js";
 import { registerCommentTools } from "./tools/comments.js";
 import { registerAnalyticsTool } from "./tools/analytics.js";
+import { registerCaptionTools } from "./tools/captions.js";
+import { registerShortsTools } from "./tools/shorts.js";
 import { registerBridgeTools } from "./tools/bridge.js";
 
 export interface ServerConfig {
@@ -49,6 +51,8 @@ export async function startServer(config: ServerConfig): Promise<void> {
     registerPlaylistTools(s, youtube);
     registerCommentTools(s, youtube);
     registerAnalyticsTool(s, youtube);
+    registerCaptionTools(s, youtube);
+    registerShortsTools(s, youtube);
     registerBridgeTools(s, youtube, comfyui, config.comfyUIDefaultCkpt);
     return s;
   };

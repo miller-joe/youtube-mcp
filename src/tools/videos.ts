@@ -11,6 +11,15 @@ const getVideoSchema = {
   video_id: z.string().describe("YouTube video ID (the part after v= in the URL)"),
 };
 
+const deleteVideoSchema = {
+  video_id: z.string().describe("Video ID to delete."),
+  confirm_video_title: z
+    .string()
+    .describe(
+      "Exact current title of the video. Must match what YouTube returns to proceed — prevents accidental deletion of the wrong video.",
+    ),
+};
+
 const updateVideoMetadataSchema = {
   video_id: z.string(),
   title: z.string().optional(),
@@ -59,6 +68,41 @@ export function registerVideoTools(server: McpServer, client: YouTubeClient): vo
       return {
         content: [
           { type: "text" as const, text: JSON.stringify(video, null, 2) },
+        ],
+      };
+    },
+  );
+
+  server.tool(
+    "delete_video",
+    "Permanently delete a video. Requires confirm_video_title to match the video's current title exactly — guards against deleting the wrong video by ID. Deletion is irreversible.",
+    deleteVideoSchema,
+    async (args) => {
+      const current = await client.getVideo(args.video_id);
+      const video = current.items[0];
+      if (!video) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Video not found: ${args.video_id}`,
+            },
+          ],
+        };
+      }
+      const actualTitle = video.snippet?.title ?? "";
+      if (actualTitle !== args.confirm_video_title) {
+        throw new Error(
+          `confirm_video_title mismatch. Expected exact title "${actualTitle}", got "${args.confirm_video_title}". Aborting delete.`,
+        );
+      }
+      await client.deleteVideo(args.video_id);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Deleted video ${args.video_id} ("${actualTitle}").`,
+          },
         ],
       };
     },

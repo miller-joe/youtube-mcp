@@ -89,6 +89,16 @@ Or point your MCP gateway at the Streamable HTTP endpoint.
 - `list_my_videos` — paginated list of authenticated channel's uploads
 - `get_video` — full detail for one video
 - `update_video_metadata` — title / description / tags / category / privacy
+- `delete_video` — permanently delete a video. Requires `confirm_video_title` to match the current title exactly as a guard against deleting the wrong video.
+
+### Captions
+- `list_captions` — list caption tracks on a video (language, name, status, draft flag)
+- `upload_caption` — upload an SRT or WebVTT caption track to a video
+- `delete_caption` — delete a caption track
+
+### Shorts
+- `list_my_shorts` — find Shorts in recent uploads (filters by ≤60s duration)
+- `get_shorts_analytics` — YouTube Analytics query restricted to Shorts (`creatorContentType==SHORTS`)
 
 ### Playlists
 - `create_playlist` — create a playlist (default private)
@@ -153,11 +163,11 @@ Requires Node 20+.
 - [x] Comments list / reply / moderate
 - [x] Channel analytics query
 - [x] ComfyUI thumbnail bridge (`generate_and_set_thumbnail`)
+- [x] Caption upload + list + delete (`upload_caption`, `list_captions`, `delete_caption`)
+- [x] Video delete with title-match confirm guard
+- [x] Shorts ergonomics: `list_my_shorts` (duration filter) + `get_shorts_analytics` (creatorContentType==SHORTS)
 - [ ] Video upload (`video_upload`) — resumable upload support
-- [ ] Caption upload
-- [ ] Video delete (held until there's a safe confirm pattern)
 - [ ] Reporting API for bulk historical data exports
-- [ ] Shorts-specific ergonomics (vertical workflow, pinned comments)
 
 ## License
 
