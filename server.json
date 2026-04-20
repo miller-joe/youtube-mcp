@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.miller-joe/youtube-mcp",
-  "description": "MCP server for YouTube creator-ops with a ComfyUI bridge for AI thumbnail generation.",
+  "description": "OAuth-authenticated YouTube MCP for channel owners — edit videos, manage comments/playlists, query analytics, and set AI-generated thumbnails via a ComfyUI bridge.",
   "repository": {
     "url": "https://github.com/miller-joe/youtube-mcp",
     "source": "github"

@@ -1,6 +1,6 @@
 # youtube-mcp
 
-MCP server for YouTube — creator-ops (video metadata, playlists, comments, analytics) plus a **ComfyUI thumbnail bridge** that generates AI thumbnails and uploads them in one call.
+**OAuth-authenticated YouTube MCP for channel owners** — edit your video metadata, reply to and moderate comments, manage playlists, query channel analytics, and generate + set AI thumbnails via a ComfyUI bridge. Goes beyond the read-only Data API v3 wrappers that dominate this space.
 
 Part of the [MCP Server Series](https://github.com/miller-joe).
 
@@ -9,7 +9,7 @@ Part of the [MCP Server Series](https://github.com/miller-joe).
 
 ## The pitch
 
-Most existing YouTube MCPs are read-only transcript wrappers. This one does the actual work: update your videos' metadata, reply to comments, moderate spam, query analytics, and — the hero tool — **generate a thumbnail via ComfyUI and push it to YouTube in a single MCP call**.
+Most existing YouTube MCPs use an API key against Data API v3 — search videos, fetch public metadata, read-only. This one uses **OAuth 2.0 (Authorization Code + PKCE)** so it can actually *write* to your channel: update video titles/descriptions/tags, reply to comments, moderate spam, manage playlists. Plus it hits the separate **YouTube Analytics API** for channel stats, and — the hero tool — **generates a thumbnail via ComfyUI and pushes it to YouTube in a single MCP call**.
 
 ```
 Claude, use generate_and_set_thumbnail on video abc123:

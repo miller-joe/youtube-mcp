@@ -2,7 +2,7 @@
   "name": "@miller-joe/youtube-mcp",
   "version": "0.1.2",
   "mcpName": "io.github.miller-joe/youtube-mcp",
-  "description": "MCP server for YouTube — creator ops (video metadata, comments, playlists, analytics) plus ComfyUI thumbnail generation bridge.",
+  "description": "OAuth-authenticated YouTube MCP server for channel owners — edit video metadata, reply to and moderate comments, manage playlists, query channel analytics, and set AI-generated thumbnails via a ComfyUI bridge.",
   "license": "MIT",
   "author": "Joe Miller <joe@indivision.net> (https://github.com/miller-joe)",
   "type": "module",
