@@ -6,12 +6,12 @@
     "url": "https://github.com/miller-joe/youtube-mcp",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@miller-joe/youtube-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "streamable-http",
         "url": "http://localhost:9120/mcp"
