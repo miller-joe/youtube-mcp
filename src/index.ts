@@ -94,8 +94,14 @@ async function resolveClientCredentials(): Promise<{
   const secretFile =
     values["client-secret-file"] ?? process.env.YOUTUBE_CLIENT_SECRET_FILE;
   if (secretFile) {
-    const info = await readClientSecrets(secretFile);
-    return { clientId: info.client_id, clientSecret: info.client_secret };
+    try {
+      const info = await readClientSecrets(secretFile);
+      return { clientId: info.client_id, clientSecret: info.client_secret };
+    } catch (err) {
+      process.stderr.write(
+        `Warning: could not read OAuth client secrets from ${secretFile}: ${(err as Error).message}. YouTube tool calls will fail until configured.\n`,
+      );
+    }
   }
   const envId = process.env.YOUTUBE_CLIENT_ID;
   const envSecret = process.env.YOUTUBE_CLIENT_SECRET;
