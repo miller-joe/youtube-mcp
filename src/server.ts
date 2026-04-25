@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import {
@@ -32,19 +33,15 @@ interface Session {
   transport: StreamableHTTPServerTransport;
 }
 
-export async function startServer(config: ServerConfig): Promise<void> {
+function buildContext(config: ServerConfig) {
   const youtube = new YouTubeClient({
     clientId: config.clientId,
     clientSecret: config.clientSecret,
     tokenFile: config.tokenFile,
   });
-
   const comfyui = config.comfyUIUrl
     ? new ComfyUIClient({ baseUrl: config.comfyUIUrl })
     : null;
-
-  const sessions = new Map<string, Session>();
-
   const buildServer = () => {
     const s = new McpServer({ name: "youtube-mcp", version: "0.1.0" });
     registerVideoTools(s, youtube);
@@ -56,6 +53,19 @@ export async function startServer(config: ServerConfig): Promise<void> {
     registerBridgeTools(s, youtube, comfyui, config.comfyUIDefaultCkpt);
     return s;
   };
+  return { comfyui, buildServer };
+}
+
+export async function startStdioServer(config: ServerConfig): Promise<void> {
+  const { buildServer } = buildContext(config);
+  const server = buildServer();
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+export async function startServer(config: ServerConfig): Promise<void> {
+  const { comfyui, buildServer } = buildContext(config);
+  const sessions = new Map<string, Session>();
 
   const httpServer = createServer(async (req, res) => {
     try {

@@ -2,7 +2,7 @@
 import { parseArgs } from "node:util";
 import { spawn } from "node:child_process";
 import { platform } from "node:os";
-import { startServer } from "./server.js";
+import { startServer, startStdioServer } from "./server.js";
 import { runOAuthFlow } from "./auth/oauth.js";
 import {
   defaultTokenPath,
@@ -22,6 +22,7 @@ const { values } = parseArgs({
     "client-secret": { type: "string" },
     "token-file": { type: "string" },
     "comfyui-url": { type: "string" },
+    stdio: { type: "boolean" },
     help: { type: "boolean", short: "h" },
   },
 });
@@ -53,9 +54,8 @@ if (values.auth) {
 const stored = await loadStoredToken(tokenFile);
 if (!stored) {
   process.stderr.write(
-    `Error: no stored token at ${tokenFile}.\nRun 'youtube-mcp --auth --client-secret-file <path>' first.\n`,
+    `Warning: no stored OAuth token at ${tokenFile}. YouTube tool calls will fail until you run 'youtube-mcp --auth --client-secret-file <path>'.\n`,
   );
-  process.exit(1);
 }
 
 const host = values.host ?? process.env.MCP_HOST ?? "0.0.0.0";
@@ -64,7 +64,8 @@ const comfyUIUrl = values["comfyui-url"] ?? process.env.COMFYUI_URL;
 const comfyUIDefaultCkpt =
   process.env.COMFYUI_DEFAULT_CKPT ?? "sd_xl_base_1.0.safetensors";
 
-await startServer({
+const useStdio = values.stdio || process.env.MCP_TRANSPORT === "stdio";
+const config = {
   host,
   port,
   clientId,
@@ -72,7 +73,12 @@ await startServer({
   tokenFile,
   comfyUIUrl,
   comfyUIDefaultCkpt,
-});
+};
+if (useStdio) {
+  await startStdioServer(config);
+} else {
+  await startServer(config);
+}
 
 async function resolveClientCredentials(): Promise<{
   clientId: string;
@@ -98,7 +104,7 @@ async function resolveClientCredentials(): Promise<{
   }
   process.stderr.write(
     [
-      "Error: OAuth client credentials not provided.",
+      "Warning: OAuth client credentials not provided. YouTube tool calls will fail until configured.",
       "Supply them via one of:",
       "  --client-secret-file <path>  (recommended — downloaded from Google Cloud)",
       "  --client-id <id> --client-secret <secret>",
@@ -107,7 +113,7 @@ async function resolveClientCredentials(): Promise<{
       "",
     ].join("\n"),
   );
-  process.exit(1);
+  return { clientId: "", clientSecret: "" };
 }
 
 function openBrowser(url: string): void {
@@ -147,6 +153,10 @@ function printHelp(): void {
       "  --port <port>                  Bind port (default: 9120, env: MCP_PORT)",
       "  --comfyui-url <url>            ComfyUI HTTP URL for the thumbnail bridge tool.",
       "                                 When unset, generate_and_set_thumbnail is disabled. (env: COMFYUI_URL)",
+      "  --stdio                        Speak MCP over stdio instead of starting an HTTP",
+      "                                 server. Use when launched as a subprocess by an",
+      "                                 MCP client (Claude Desktop, mcp-inspector, etc.)",
+      "                                 (env: MCP_TRANSPORT=stdio)",
       "",
       "Other env:",
       "  YOUTUBE_CLIENT_SECRET_FILE      Alternative to --client-secret-file",
