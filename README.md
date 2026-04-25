@@ -2,6 +2,7 @@
 
 OAuth-authenticated YouTube MCP for channel owners. Edit video metadata, reply to and moderate comments, manage playlists, query channel analytics, and generate or set AI thumbnails via a ComfyUI bridge. Goes beyond the read-only Data API v3 wrappers that dominate this space.
 
+[![Glama MCP server](https://glama.ai/mcp/servers/miller-joe/youtube-mcp/badge)](https://glama.ai/mcp/servers/miller-joe/youtube-mcp)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/miller-joe?style=social&logo=github)](https://github.com/sponsors/miller-joe)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-ff5e5b?logo=kofi&logoColor=white)](https://ko-fi.com/indivisionjoe)
 
