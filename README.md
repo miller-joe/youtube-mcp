@@ -78,10 +78,33 @@ Or point your MCP gateway at the Streamable HTTP endpoint.
 | `--client-id` | `YOUTUBE_CLIENT_ID` | (none) | Alternative to the secret file |
 | `--client-secret` | `YOUTUBE_CLIENT_SECRET` | (none) | Alternative to the secret file |
 | `--token-file` | `YOUTUBE_TOKEN_FILE` | `~/.config/youtube-mcp/token.json` | Refresh token storage |
-| `--host` | `MCP_HOST` | `0.0.0.0` | Bind host |
-| `--port` | `MCP_PORT` | `9120` | Bind port |
+| `--host` | `MCP_HOST` | `0.0.0.0` | Bind host (HTTP mode only) |
+| `--port` | `MCP_PORT` | `9120` | Bind port (HTTP mode only) |
+| `--stdio` | `MCP_TRANSPORT=stdio` | (unset) | Speak MCP over stdio instead of HTTP. Use when launched as a subprocess by a stdio-first MCP client (Claude Desktop, mcp-inspector). |
 | `--comfyui-url` | `COMFYUI_URL` | *(unset, bridge disabled)* | ComfyUI HTTP URL for bridge tools |
 | (no flag) | `COMFYUI_DEFAULT_CKPT` | `sd_xl_base_1.0.safetensors` | Default checkpoint for bridge tool |
+
+### Transports
+
+The server speaks streamable HTTP by default (great for Claude Code, MetaMCP, raw `fetch`). Pass `--stdio` (or set `MCP_TRANSPORT=stdio`) to switch into stdio mode, which is what stdio-first clients like Claude Desktop and the MCP Inspector expect:
+
+```json
+// claude_desktop_config.json
+{
+  "mcpServers": {
+    "youtube": {
+      "command": "npx",
+      "args": ["-y", "@miller-joe/youtube-mcp", "--stdio"],
+      "env": {
+        "YOUTUBE_CLIENT_SECRET_FILE": "/path/to/client_secret.json",
+        "YOUTUBE_TOKEN_FILE": "/path/to/token.json"
+      }
+    }
+  }
+}
+```
+
+Stdio mode skips the OAuth-token preflight check — the server boots even without a stored token and surfaces auth errors at tool-call time. Run `youtube-mcp --auth --client-secret-file <path>` once in HTTP mode to seed the refresh token before pointing Claude Desktop at it.
 
 ## Tools
 
