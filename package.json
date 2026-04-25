@@ -1,6 +1,6 @@
 {
   "name": "@miller-joe/youtube-mcp",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "mcpName": "io.github.miller-joe/youtube-mcp",
   "description": "OAuth-authenticated YouTube MCP server for channel owners — edit video metadata, reply to and moderate comments, manage playlists, query channel analytics, and set AI-generated thumbnails via a ComfyUI bridge.",
   "license": "MIT",
@@ -16,6 +16,7 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "engines": {
