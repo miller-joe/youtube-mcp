@@ -25,27 +25,46 @@ const listMyShortsSchema = {
     .max(200)
     .default(50)
     .describe(
-      "How many of the most recent uploads to scan. Shorts are detected by duration ≤ 60s after fetching.",
+      "How many of the most recent uploads to scan (1–200, default 50). Each scanned video is classified as a Short by its duration (≤ 60s) after fetching; raising this scans deeper but costs more read quota.",
     ),
 };
 
 const getShortsAnalyticsSchema = {
   start_date: z
     .string()
-    .describe("YYYY-MM-DD start date (inclusive)."),
+    .describe("Report start date in YYYY-MM-DD format (inclusive). Required."),
   end_date: z
     .string()
-    .describe("YYYY-MM-DD end date (inclusive)."),
+    .describe(
+      "Report end date in YYYY-MM-DD format (inclusive). Required. Recent days may be incomplete due to YouTube's analytics finalization delay.",
+    ),
   metrics: z
     .string()
     .default("views,estimatedMinutesWatched,averageViewDuration,subscribersGained")
-    .describe("Comma-separated YouTube Analytics metrics."),
+    .describe(
+      "Comma-separated YouTube Analytics metric names. Defaults to 'views,estimatedMinutesWatched,averageViewDuration,subscribersGained'.",
+    ),
   dimensions: z
     .string()
     .optional()
-    .describe("Optional dimensions, e.g. 'day' for a time series."),
-  sort: z.string().optional(),
-  max_results: z.number().int().min(1).max(500).optional(),
+    .describe(
+      "Comma-separated dimensions to group rows by, e.g. 'day' for a time series. Omit (default) for a single Shorts-total row.",
+    ),
+  sort: z
+    .string()
+    .optional()
+    .describe(
+      "Sort spec referencing a requested metric/dimension; prefix '-' for descending, e.g. '-views'. Omit (default) for the API's natural order.",
+    ),
+  max_results: z
+    .number()
+    .int()
+    .min(1)
+    .max(500)
+    .optional()
+    .describe(
+      "Cap on the number of returned rows, 1–500. Omit (default) to let the API return all matching rows.",
+    ),
 };
 
 export function registerShortsTools(
@@ -54,7 +73,7 @@ export function registerShortsTools(
 ): void {
   server.tool(
     "list_my_shorts",
-    "List your recent Shorts — scans the most recent uploads and filters to videos ≤60s. Useful when the Data API doesn't expose a direct Shorts filter.",
+    "Lists the authenticated channel's recent Shorts by scanning the most recent uploads (up to max_candidates) and keeping videos with a duration ≤ 60s. Read-only; no mutations. Requires OAuth and costs YouTube Data API read units proportional to how many uploads are scanned (it pages through uploads in batches of 50). Returns a text list, one line per Short: video ID, title, duration in seconds, and view count, or a message that no Shorts were found. This is a heuristic (the Data API exposes no direct Shorts filter), so very recent or edge-case Shorts may be missed; use list_my_videos for all videos and get_shorts_analytics for Shorts performance stats.",
     listMyShortsSchema,
     async (args) => {
       const collected: Array<{ video: Video; seconds: number }> = [];
@@ -97,7 +116,7 @@ export function registerShortsTools(
 
   server.tool(
     "get_shorts_analytics",
-    "Query YouTube Analytics restricted to Shorts for the authenticated channel. Applies filters=creatorContentType==SHORTS on top of the usual start_date/end_date/metrics/dimensions knobs.",
+    "Queries the YouTube Analytics API for the authenticated channel restricted to Shorts, by forcing filters=creatorContentType==SHORTS on top of the supplied start_date/end_date/metrics/dimensions. Read-only; no mutations. Requires OAuth with the yt-analytics.readonly scope and uses YouTube Analytics API quota (separate from the Data API). Returns the raw Analytics response as pretty-printed JSON (column headers plus rows). Use this for Shorts-only performance reporting; use query_channel_analytics for whole-channel or custom-filtered reports, and list_my_shorts to enumerate the Shorts themselves.",
     getShortsAnalyticsSchema,
     async (args) => {
       const res = await client.analyticsQuery({
